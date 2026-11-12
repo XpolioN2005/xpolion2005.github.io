@@ -1,0 +1,216 @@
+@import "tailwindcss";
+@import "./starfield.css";
+@plugin "@tailwindcss/typography";
+
+/* ------------------------------------------------------------------
+   Design tokens — color palettes supplied by the site owner.
+   Roles: charcoal-blue = surfaces/text, strong-cyan = primary
+   interactive accent, tea-green = highlight, olive-leaf = tertiary.
+------------------------------------------------------------------ */
+@theme {
+	--font-sans:
+		ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+		"Helvetica Neue", Arial, "Noto Sans", sans-serif;
+	--font-pixel:
+		"Pixelify Sans", ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+	--font-mono:
+		"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+		"Liberation Mono", monospace;
+
+	/* Strong cyan — primary / interactive */
+	--color-strong-cyan-50: #eaf9fb;
+	--color-strong-cyan-100: #d5f4f6;
+	--color-strong-cyan-200: #aae8ee;
+	--color-strong-cyan-300: #80dde5;
+	--color-strong-cyan-400: #56d1dc;
+	--color-strong-cyan-500: #2bc6d4;
+	--color-strong-cyan-600: #239ea9;
+	--color-strong-cyan-700: #1a777f;
+	--color-strong-cyan-800: #114f55;
+	--color-strong-cyan-900: #09282a;
+	--color-strong-cyan-950: #061c1e;
+
+	/* Charcoal blue — background / surfaces / text */
+	--color-charcoal-blue-50: #f0f1f5;
+	--color-charcoal-blue-100: #e1e3ea;
+	--color-charcoal-blue-200: #c2c7d6;
+	--color-charcoal-blue-300: #a4acc1;
+	--color-charcoal-blue-400: #8690ac;
+	--color-charcoal-blue-500: #677498;
+	--color-charcoal-blue-600: #535d79;
+	--color-charcoal-blue-700: #3e465b;
+	--color-charcoal-blue-800: #292e3d;
+	--color-charcoal-blue-900: #15171e;
+	--color-charcoal-blue-950: #0e1015;
+
+	/* Olive leaf — tertiary / tags */
+	--color-olive-leaf-50: #f4f6ee;
+	--color-olive-leaf-100: #e9eedd;
+	--color-olive-leaf-200: #d3ddbb;
+	--color-olive-leaf-300: #bdcc99;
+	--color-olive-leaf-400: #a6bb77;
+	--color-olive-leaf-500: #90aa55;
+	--color-olive-leaf-600: #738844;
+	--color-olive-leaf-700: #576633;
+	--color-olive-leaf-800: #3a4422;
+	--color-olive-leaf-900: #1d2211;
+	--color-olive-leaf-950: #14180c;
+
+	/* Tea green — highlight */
+	--color-tea-green-50: #f1ffe5;
+	--color-tea-green-100: #e2ffcc;
+	--color-tea-green-200: #c5ff99;
+	--color-tea-green-300: #a8ff66;
+	--color-tea-green-400: #8bff33;
+	--color-tea-green-500: #6eff00;
+	--color-tea-green-600: #58cc00;
+	--color-tea-green-700: #429900;
+	--color-tea-green-800: #2c6600;
+	--color-tea-green-900: #163300;
+	--color-tea-green-950: #0f2400;
+
+	/* Signal red — error states only (matches Discord embed red) */
+	--color-signal-red-500: #ed4245;
+}
+
+/* Unlayered on purpose: guarantees it wins over any layered utility. */
+html {
+	scroll-behavior: smooth;
+}
+
+@layer base {
+	html {
+		color-scheme: dark;
+	}
+
+	body {
+		background-color: var(--color-charcoal-blue-950);
+		color: var(--color-charcoal-blue-50);
+		font-family: var(--font-mono);
+		-webkit-font-smoothing: antialiased;
+		text-rendering: optimizeLegibility;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		font-family: var(--font-pixel);
+	}
+
+	button,
+	label {
+		font-family: var(--font-pixel);
+	}
+
+	::selection {
+		background-color: var(--color-strong-cyan-500);
+		color: var(--color-charcoal-blue-950);
+	}
+
+	:focus-visible {
+		outline: 2px solid var(--color-strong-cyan-400);
+		outline-offset: 2px;
+		border-radius: 2px;
+	}
+}
+
+/* ------------------------------------------------------------------
+   Retro boxed-UI utilities
+------------------------------------------------------------------ */
+@utility panel {
+	border-radius: 0.75rem;
+	border: 1px solid var(--color-charcoal-blue-800);
+	background-color: var(--color-charcoal-blue-900);
+}
+
+@utility panel-box {
+	border-radius: 0.5rem;
+	border: 1px solid var(--color-charcoal-blue-700);
+	padding: 1.5rem;
+}
+
+@utility section-label {
+	display: inline-block;
+	font-family: var(--font-pixel);
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--color-charcoal-blue-50);
+	border-bottom: 3px solid var(--color-olive-leaf-500);
+	padding-bottom: 0.25rem;
+}
+
+/* Article body: mono text, pixel headings */
+.prose {
+	font-family: var(--font-mono);
+}
+
+.prose :is(h1, h2, h3, h4, h5, h6) {
+	font-family: var(--font-pixel);
+	font-weight: 700;
+}
+
+/* Code blocks: full-width background bounding box */
+.prose pre {
+	background-color: var(--color-charcoal-blue-950) !important;
+	padding: 1rem;
+	border-radius: 0.5rem;
+	overflow-x: auto;
+}
+
+/* Neutralize inline code styling inside pre blocks so it doesn't double-wrap */
+.prose pre code {
+	background-color: transparent !important;
+	padding: 0;
+	border-radius: 0;
+	font-size: inherit;
+}
+
+/* Hidden horizontal scrollbar (e.g. mobile tab strips) */
+@utility scrollbar-none {
+	scrollbar-width: none;
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
+}
+
+/* Tab panel entrance: content eases down into place (no layout shift). */
+@keyframes panel-in {
+	from {
+		opacity: 0;
+		transform: translateY(-0.5rem);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.panel-enter {
+	animation: panel-in 220ms ease-out;
+}
+
+/* Mobile nav dropdown: grid-rows tween slides to the menu's natural height. */
+.mobile-menu {
+	display: grid;
+	grid-template-rows: 0fr;
+	opacity: 0;
+	transition:
+		grid-template-rows 260ms ease,
+		opacity 200ms ease;
+}
+
+.mobile-menu > div {
+	min-height: 0;
+	overflow: hidden;
+}
+
+.mobile-menu.is-open {
+	grid-template-rows: 1fr;
+	opacity: 1;
+}

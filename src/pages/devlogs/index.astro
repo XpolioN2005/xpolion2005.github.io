@@ -1,0 +1,80 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { slugifyTag } from "../../utils/tags";
+
+const posts = (await getCollection("blog", ({ data }) =>
+  import.meta.env.PROD ? !data.draft : true,
+)).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const formatDate = (date: Date) =>
+  date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+---
+
+<BaseLayout title="Devlogs" description="Writing on topics I care about.">
+  <section class="py-8">
+    <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div class="panel">
+        <div class="panel-box">
+          <h1 class="text-3xl font-bold">Devlogs</h1>
+          <p class="mt-2 text-charcoal-blue-300">Writing on topics I care about.</p>
+
+      {
+        posts.length === 0 ? (
+          <p class="mt-8 rounded-md border border-dashed border-charcoal-blue-700 p-4 text-sm text-charcoal-blue-400">
+            No posts yet. Add Markdown files to
+            <code class="mx-1 rounded bg-charcoal-blue-900 px-1 py-0.5">src/content/blog/</code>.
+          </p>
+        ) : (
+          <ol class="mt-8 divide-y divide-charcoal-blue-700 border-y border-charcoal-blue-700">
+            {posts.map((post) => (
+              <li class="py-6">
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm font-bold uppercase tracking-wide text-olive-leaf-400">
+                  <time datetime={post.data.pubDate.toISOString().slice(0, 10)}>
+                    {formatDate(post.data.pubDate)}
+                  </time>
+                  {post.data.draft && (
+                    <span class="rounded-md border border-olive-leaf-700 px-2 py-0.5 text-xs text-olive-leaf-300">
+                      Draft
+                    </span>
+                  )}
+                </div>
+                <h2 class="mt-1 text-lg font-semibold text-charcoal-blue-50">
+                  <a
+                    href={`/devlogs/${post.id}`}
+                    class="transition-colors hover:text-strong-cyan-400"
+                  >
+                    {post.data.title}
+                  </a>
+                </h2>
+                <p class="mt-1 text-sm leading-relaxed text-charcoal-blue-300">
+                  {post.data.description}
+                </p>
+                {post.data.tags.length > 0 && (
+                  <ul class="mt-3 flex flex-wrap gap-2">
+                    {post.data.tags.map((tag) => (
+                      <li>
+                        <a
+                          href={`/devlogs/tags/${slugifyTag(tag)}`}
+                          class="rounded-md border border-charcoal-blue-700 px-2.5 py-0.5 font-pixel text-xs font-bold text-olive-leaf-300 transition-colors hover:border-olive-leaf-400 hover:text-olive-leaf-200"
+                        >
+                          {tag}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ol>
+        )
+      }
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

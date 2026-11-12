@@ -1,0 +1,51 @@
+---
+/**
+ * Secondary site navigation — stacked retro buttons.
+ * Rendered in the desktop sidebar and the mobile hamburger menu.
+ */
+interface Props {
+  context?: "sidebar" | "menu";
+  class?: string;
+}
+
+const { context = "sidebar", class: className = "" } = Astro.props;
+
+const links = [
+  { href: "/", label: "Home" },
+  { href: "/projects", label: "Projects" },
+  { href: "/devlogs", label: "Devlogs" },
+  { href: "/about", label: "About" },
+];
+
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === "/" ? path === "/" : path.startsWith(href);
+---
+
+<nav aria-label="Site" class={className}>
+  <ul
+    class:list={[
+      "flex flex-col gap-3",
+      context === "menu" ? "py-2" : "",
+    ]}
+  >
+    {
+      links.map((link) => (
+        <li>
+          <a
+            href={link.href}
+            aria-current={isActive(link.href) ? "page" : undefined}
+            class:list={[
+              "block w-full border bg-charcoal-blue-900 px-4 py-2.5 text-center font-pixel text-sm font-bold uppercase tracking-wide transition-colors",
+              isActive(link.href)
+                ? "border-strong-cyan-500 border-l-4 border-l-tea-green-500 text-strong-cyan-400"
+                : "border-charcoal-blue-700 text-charcoal-blue-300 hover:border-strong-cyan-400 hover:text-strong-cyan-400",
+            ]}
+          >
+            {link.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>

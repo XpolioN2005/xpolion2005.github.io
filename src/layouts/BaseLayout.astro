@@ -1,0 +1,162 @@
+---
+import "@fontsource/pixelify-sans/400.css";
+import "@fontsource/pixelify-sans/700.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/700.css";
+import "../styles/global.css";
+import Sidebar from "../components/Sidebar.astro";
+import MobileHeader from "../components/MobileHeader.astro";
+import Footer from "../components/Footer.astro";
+import { site } from "../site";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = site.tagline } = Astro.props;
+const pageTitle = title ? `${title} · ${site.brand}` : site.brand;
+
+// Canonical URL — absolute, no trailing slash; root collapses to the bare origin.
+const pathname = Astro.url.pathname.replace(/\/+$/, "") || "/";
+const canonical = new URL(pathname, Astro.site).href.replace(/\/$/, "");
+
+// Absolute OG image — brand logo (no dedicated share image exists in public/).
+const ogImage = new URL("/android-chrome-512x512.png", Astro.site).href;
+
+// Structured data — tells Google the site's real name instead of the domain,
+// and links the XpolioN brand to the person behind the site.
+const siteUrl = Astro.site?.href ?? canonical;
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      name: site.brand,
+      alternateName: site.name,
+      url: siteUrl,
+      inLanguage: "en",
+    },
+    {
+      "@type": "Person",
+      name: site.name,
+      alternateName: site.brand,
+      url: siteUrl,
+      sameAs: site.socials
+        .map((social) => social.href)
+        .filter((href) => href.startsWith("http")),
+    },
+  ],
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Favicons: .ico first — Google Search does not support SVG favicons -->
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#0e1015" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <!-- Open Graph — link previews in search results and social apps -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.brand} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content={`${site.brand} logo`} />
+    <script
+      is:inline
+      type="application/ld+json"
+      set:html={JSON.stringify(structuredData)}
+    />
+    <title>{pageTitle}</title>
+  </head>
+  <body class="min-h-screen">
+    <div class="starfield" aria-hidden="true">
+      <div class="starfield-inner">
+        <div id="stars"></div>
+        <div id="stars2"></div>
+        <div id="stars3"></div>
+        <div id="stars4"></div>
+      </div>
+    </div>
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-strong-cyan-500 focus:px-4 focus:py-2 focus:font-medium focus:text-charcoal-blue-950"
+    >
+      Skip to content
+    </a>
+    <Sidebar />
+    <MobileHeader />
+    <div class="flex min-h-screen flex-col lg:pl-72">
+      <main id="main-content" class="flex-1">
+        <slot />
+      </main>
+      <Footer />
+    </div>
+
+    <script>
+      /**
+       * All-in smooth anchor scrolling.
+       * Animates same-page `#hash` navigation manually (rAF) instead of relying
+       * on native `scroll-behavior`, so it works even when the OS/browser
+       * suppresses native smooth scrolling (e.g. reduced-motion OS settings).
+       */
+      const DURATION = 700; // ms
+
+      // ease-in-out cubic
+      const ease = (t: number) =>
+        t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+      function animateScroll(to: number) {
+        const from = window.scrollY;
+        if (Math.abs(from - to) < 1) return;
+        const start = performance.now();
+        const step = (now: number) => {
+          const p = Math.min((now - start) / DURATION, 1);
+          window.scrollTo(0, from + (to - from) * ease(p));
+          if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }
+
+      document.addEventListener("click", (event) => {
+        if (event.defaultPrevented || event.button !== 0) return;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+          return;
+        const link = (event.target as HTMLElement | null)?.closest<HTMLAnchorElement>(
+          'a[href*="#"]',
+        );
+        if (!link) return;
+
+        const url = new URL(link.href, location.href);
+        // Same-page anchors only — leave real navigations to the browser.
+        if (url.pathname !== location.pathname || url.search !== location.search)
+          return;
+        const id = decodeURIComponent(url.hash.slice(1));
+        if (!id) return;
+        const target = document.getElementById(id);
+        if (!target) return;
+
+        event.preventDefault();
+        // Mirror native hash navigation: honor the target's scroll-margin-top.
+        const margin = parseInt(getComputedStyle(target).scrollMarginTop) || 0;
+        const top = target.getBoundingClientRect().top + window.scrollY - margin;
+        animateScroll(top);
+        history.pushState(null, "", url.hash);
+      });
+    </script>
+  </body>
+</html>

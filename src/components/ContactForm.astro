@@ -1,0 +1,124 @@
+---
+/**
+ * Contact form — posts to the contact Netlify Function,
+ * which forwards the submission to a Discord webhook.
+ */
+---
+
+<form class="space-y-4" action="/.netlify/functions/contact" method="post" data-contact-form>
+  <div>
+    <label for="contact-name" class="mb-1 block text-sm font-bold uppercase tracking-wide text-charcoal-blue-200">
+      Name
+    </label>
+    <input
+      id="contact-name"
+      name="name"
+      type="text"
+      autocomplete="name"
+      required
+      class="w-full border border-charcoal-blue-700 bg-charcoal-blue-950 px-3 py-2 font-mono text-sm text-charcoal-blue-50 placeholder-charcoal-blue-500 transition-colors focus:border-strong-cyan-500"
+    />
+  </div>
+  <div>
+    <label for="contact-email" class="mb-1 block text-sm font-bold uppercase tracking-wide text-charcoal-blue-200">
+      Email
+    </label>
+    <input
+      id="contact-email"
+      name="email"
+      type="email"
+      autocomplete="email"
+      required
+      class="w-full border border-charcoal-blue-700 bg-charcoal-blue-950 px-3 py-2 font-mono text-sm text-charcoal-blue-50 placeholder-charcoal-blue-500 transition-colors focus:border-strong-cyan-500"
+    />
+  </div>
+  <div>
+    <label for="contact-message" class="mb-1 block text-sm font-bold uppercase tracking-wide text-charcoal-blue-200">
+      Message
+    </label>
+    <textarea
+      id="contact-message"
+      name="message"
+      rows="5"
+      required
+      class="w-full border border-charcoal-blue-700 bg-charcoal-blue-950 px-3 py-2 font-mono text-sm text-charcoal-blue-50 placeholder-charcoal-blue-500 transition-colors focus:border-strong-cyan-500"
+    ></textarea>
+  </div>
+  <button
+    type="submit"
+    data-contact-submit
+    class="inline-flex items-center gap-2 border-2 border-charcoal-blue-950 bg-tea-green-600 px-5 py-2 font-pixel text-sm font-bold uppercase tracking-wide text-charcoal-blue-950 transition-colors hover:bg-tea-green-500"
+  >
+    Send message
+  </button>
+  <p
+    data-contact-status
+    role="status"
+    aria-live="polite"
+    class="text-sm"
+  ></p>
+</form>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-contact-form]");
+  const status = document.querySelector<HTMLParagraphElement>(
+    "[data-contact-status]",
+  );
+  const submit = document.querySelector<HTMLButtonElement>(
+    "[data-contact-submit]",
+  );
+
+  if (form && status && submit) {
+    const setStatus = (message: string, tone: "success" | "error") => {
+      status.textContent = message;
+      status.classList.toggle(
+        "text-tea-green-400",
+        tone === "success",
+      );
+      status.classList.toggle("text-signal-red-500", tone === "error");
+    };
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      submit.disabled = true;
+      submit.setAttribute("aria-busy", "true");
+      status.classList.remove("text-tea-green-400", "text-signal-red-500");
+      setStatus("Sending…", "success");
+
+      const data = new FormData(form);
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: data.get("name"),
+            email: data.get("email"),
+            message: data.get("message"),
+          }),
+        });
+
+        if (!response.ok) {
+          const body = await response.text();
+          console.error(
+            `[contact] Request failed — status: ${response.status}, body: ${body}`,
+          );
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+
+        setStatus("Message sent! I'll get back to you soon.", "success");
+        form.reset();
+      } catch (error) {
+        console.error("[contact] Submission error:", error);
+        setStatus(
+          "Something went wrong. Please try again or email me directly.",
+          "error",
+        );
+      } finally {
+        submit.disabled = false;
+        submit.removeAttribute("aria-busy");
+      }
+    });
+  }
+</script>

@@ -1,0 +1,81 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { slugifyTag } from "../../../utils/tags";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog", ({ data }) =>
+    import.meta.env.PROD ? !data.draft : true,
+  );
+
+  const bySlug = new Map<string, { tag: string; posts: typeof posts }>();
+  for (const post of posts) {
+    for (const tag of post.data.tags) {
+      const slug = slugifyTag(tag);
+      if (!bySlug.has(slug)) bySlug.set(slug, { tag, posts: [] });
+      bySlug.get(slug)!.posts.push(post);
+    }
+  }
+
+  return [...bySlug.entries()].map(([slug, { tag, posts }]) => ({
+    params: { tag: slug },
+    props: { tag, posts: posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()) },
+  }));
+}
+
+const { tag, posts } = Astro.props;
+
+const formatDate = (date: Date) =>
+  date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+---
+
+<BaseLayout title={`Tag: ${tag}`} description={`Posts tagged “${tag}”.`}>
+  <section class="py-8">
+    <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+      <div class="panel">
+        <div class="panel-box">
+          <a
+            href="/devlogs"
+            class="font-pixel text-sm font-bold uppercase tracking-wide text-strong-cyan-400 underline transition-colors hover:text-strong-cyan-300"
+          >
+            ← All posts
+          </a>
+          <h1 class="mt-4 text-3xl font-bold">Tag: {tag}</h1>
+      <p class="mt-2 text-charcoal-blue-300">
+        {posts.length} {posts.length === 1 ? "post" : "posts"} tagged with “{tag}”.
+      </p>
+
+      <ol class="mt-8 divide-y divide-charcoal-blue-700 border-y border-charcoal-blue-700">
+        {
+          posts.map((post) => (
+            <li class="py-5">
+              <time
+                datetime={post.data.pubDate.toISOString().slice(0, 10)}
+                class="font-mono text-sm font-bold uppercase tracking-wide text-olive-leaf-400"
+              >
+                {formatDate(post.data.pubDate)}
+              </time>
+              <h2 class="mt-1 text-lg font-semibold text-charcoal-blue-50">
+                <a
+                  href={`/devlogs/${post.id}`}
+                  class="transition-colors hover:text-strong-cyan-400"
+                >
+                  {post.data.title}
+                </a>
+              </h2>
+              <p class="mt-1 text-sm leading-relaxed text-charcoal-blue-300">
+                {post.data.description}
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

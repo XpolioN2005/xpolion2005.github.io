@@ -1,0 +1,267 @@
+---
+/**
+ * Homepage tab section: Work Experience (default), Projects, Skills.
+ * Vanilla JS only — no framework hydration.
+ */
+import { getCollection } from "astro:content";
+import { skillGroups } from "../data/skills";
+import ProjectCover from "./ProjectCover.astro";
+
+const workEntries = await getCollection("work");
+const projectEntries = await getCollection("projects");
+const previewProjects = projectEntries
+  .filter((project) => project.data.featured)
+  .slice(0, 5);
+
+const tabs = [
+  { id: "work", label: "Work Experience" },
+  { id: "projects", label: "Projects" },
+  { id: "skills", label: "Skills" },
+] as const;
+---
+
+<section id="work" class="scroll-mt-20 py-6">
+  <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+    <div class="panel">
+      <div class="panel-box">
+        <h2 class="sr-only">Work experience, projects and skills</h2>
+
+        <div data-tabs>
+      <div class="relative">
+        <div
+          role="tablist"
+          aria-label="Work experience, projects and skills"
+          class="scrollbar-none flex gap-1 overflow-x-auto border-b border-charcoal-blue-800"
+        >
+        {
+          tabs.map((tab, index) => (
+            <button
+              type="button"
+              role="tab"
+              id={`tab-${tab.id}`}
+              aria-controls={`panel-${tab.id}`}
+              aria-selected={index === 0 ? "true" : "false"}
+              tabindex={index === 0 ? 0 : -1}
+              class="-mb-px shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-3 font-pixel text-sm font-bold uppercase tracking-wide text-charcoal-blue-400 transition-colors hover:text-strong-cyan-400 aria-selected:border-strong-cyan-400 aria-selected:text-strong-cyan-400 sm:px-4"
+            >
+              {tab.label}
+            </button>
+          ))
+        }
+        </div>
+        <!-- Scroll affordance: right-edge fade shown on small screens -->
+        <div
+          aria-hidden="true"
+          class="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-charcoal-blue-900 to-transparent sm:hidden"
+        ></div>
+      </div>
+
+      <!-- Work Experience panel -->
+      <div
+        id="panel-work"
+        role="tabpanel"
+        aria-labelledby="tab-work"
+        tabindex="0"
+        class="pt-6"
+      >
+        {
+          workEntries.length === 0 ? (
+            <p class="rounded-md border border-dashed border-charcoal-blue-700 p-4 text-sm text-charcoal-blue-400">
+              No work experience entries yet. Add Markdown files to
+              <code class="mx-1 rounded bg-charcoal-blue-900 px-1 py-0.5">src/content/work/</code>.
+            </p>
+          ) : (
+            <ol class="space-y-8">
+              {workEntries.map((entry) => (
+                <li class="border-l-2 border-charcoal-blue-700 pl-5">
+                  <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                    <h3 class="font-semibold text-charcoal-blue-50">
+                      {entry.data.role}
+                    </h3>
+                    <span class="text-sm text-olive-leaf-400">
+                      {entry.data.period}
+                    </span>
+                  </div>
+                  <p class="text-sm font-medium text-strong-cyan-400">
+                    {entry.data.company}
+                  </p>
+                  {entry.data.summary && (
+                    <p class="mt-2 text-sm leading-relaxed text-charcoal-blue-300">
+                      {entry.data.summary}
+                    </p>
+                  )}
+                  {entry.data.highlights.length > 0 && (
+                    <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-charcoal-blue-300">
+                      {entry.data.highlights.map((highlight) => (
+                        <li>{highlight}</li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ol>
+          )
+        }
+      </div>
+
+      <!-- Projects panel -->
+      <div
+        id="panel-projects"
+        role="tabpanel"
+        aria-labelledby="tab-projects"
+        tabindex="0"
+        hidden
+        class="pt-6"
+      >
+        {
+          previewProjects.length === 0 ? (
+            <p class="rounded-md border border-dashed border-charcoal-blue-700 p-4 text-sm text-charcoal-blue-400">
+              No projects yet. Add Markdown files to
+              <code class="mx-1 rounded bg-charcoal-blue-900 px-1 py-0.5">src/content/projects/</code>.
+            </p>
+          ) : (
+            <ul class="divide-y divide-charcoal-blue-700">
+              {previewProjects.map((project) => (
+                <li class="py-6">
+                  <a href={`/projects/${project.id}`} class="group flex flex-col gap-3 sm:flex-row sm:gap-4">
+                    <ProjectCover
+                      cover={project.data.cover}
+                      title={project.data.title}
+                      class="h-20 w-32 shrink-0 self-center rounded-md border border-charcoal-blue-700 sm:self-auto"
+                      compact
+                    />
+                    <div class="min-w-0 flex-1">
+                      <div class="flex flex-wrap items-baseline justify-between gap-x-4">
+                        <h3 class="font-semibold text-charcoal-blue-50 transition-colors group-hover:text-strong-cyan-400">
+                          {project.data.title}
+                        </h3>
+                        <span class="font-pixel text-xs font-bold uppercase tracking-wide text-olive-leaf-400">
+                          {project.data.type}
+                        </span>
+                      </div>
+                      <p class="mt-1 text-sm leading-relaxed text-charcoal-blue-300">
+                        {project.data.description}
+                      </p>
+                      {project.data.technologies.length > 0 && (
+                        <ul class="mt-2 flex flex-wrap gap-2">
+                          {project.data.technologies.map((tech) => (
+                            <li class="rounded-md border border-charcoal-blue-700 bg-charcoal-blue-950 px-2.5 py-0.5 font-pixel text-xs font-bold text-olive-leaf-300">
+                              {tech}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+        {
+          previewProjects.length > 0 && (
+            <a
+              href="/projects"
+              class="mt-6 inline-block text-sm font-medium text-strong-cyan-400 transition-colors hover:text-strong-cyan-300"
+            >
+              All projects →
+            </a>
+          )
+        }
+      </div>
+
+      <!-- Skills panel -->
+      <div
+        id="panel-skills"
+        role="tabpanel"
+        aria-labelledby="tab-skills"
+        tabindex="0"
+        hidden
+        class="pt-6"
+      >
+        {
+          skillGroups.length === 0 ? (
+            <p class="rounded-md border border-dashed border-charcoal-blue-700 p-4 text-sm text-charcoal-blue-400">
+              No skills listed yet. Add groups in
+              <code class="mx-1 rounded bg-charcoal-blue-900 px-1 py-0.5">src/data/skills.ts</code>.
+            </p>
+          ) : (
+            <div class="space-y-6">
+              {skillGroups.map((group) => (
+                <div>
+                  <h3 class="font-pixel text-sm font-bold uppercase tracking-wider text-tea-green-400">
+                    {group.category}
+                  </h3>
+                  <ul class="mt-2 flex flex-wrap gap-2">
+                    {group.items.map((item) => (
+                      <li class="inline-flex items-center gap-1.5 rounded-md border border-charcoal-blue-700 bg-charcoal-blue-950 px-3 py-1 font-mono text-sm text-charcoal-blue-200">
+                        {typeof item !== "string" && item.icon && (
+                          <img
+                            src={item.icon}
+                            alt=""
+                            loading="lazy"
+                            class="h-4 w-4 object-contain"
+                          />
+                        )}
+                        {typeof item === "string" ? item : item.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )
+        }
+      </div>
+    </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-tabs]").forEach((root) => {
+    const tabs = Array.from(
+      root.querySelectorAll<HTMLButtonElement>('[role="tab"]'),
+    );
+    const panels = tabs.map((tab) =>
+      document.getElementById(tab.getAttribute("aria-controls") ?? ""),
+    );
+
+    function select(selectedIndex: number) {
+      tabs.forEach((tab, index) => {
+        const selected = index === selectedIndex;
+        tab.setAttribute("aria-selected", String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        const panel = panels[index];
+        panel?.toggleAttribute("hidden", !selected);
+        if (selected && panel) {
+          // Entrance animation: transform/opacity only, so nothing reflows or jumps.
+          panel.classList.remove("panel-enter");
+          void panel.offsetWidth;
+          panel.classList.add("panel-enter");
+        }
+      });
+    }
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => select(index));
+      tab.addEventListener("keydown", (event) => {
+        const key = event.key;
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(key)) return;
+        event.preventDefault();
+        let next =
+          key === "ArrowLeft"
+            ? index - 1
+            : key === "ArrowRight"
+              ? index + 1
+              : key === "Home"
+                ? 0
+                : tabs.length - 1;
+        next = (next + tabs.length) % tabs.length;
+        select(next);
+        tabs[next]?.focus();
+      });
+    });
+  });
+</script>

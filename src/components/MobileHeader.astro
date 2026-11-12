@@ -1,0 +1,75 @@
+---
+/**
+ * Mobile-only sticky header with a hamburger menu.
+ * The menu contains the secondary navigation only — the profile
+ * section lives in the homepage hero instead.
+ */
+import { site } from "../site";
+import SiteNav from "./SiteNav.astro";
+---
+
+<header
+  class="sticky top-0 z-40 border-b border-charcoal-blue-800 bg-charcoal-blue-950 lg:hidden"
+>
+  <div class="flex h-14 items-center justify-between px-4">
+    <a href="/" class="truncate font-pixel text-lg font-bold tracking-wide text-charcoal-blue-50">
+      {site.brand}
+    </a>
+    <button
+      type="button"
+      data-menu-button
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+      class="inline-flex items-center justify-center rounded-md p-2 text-charcoal-blue-300 transition-colors hover:bg-charcoal-blue-900 hover:text-strong-cyan-400"
+    >
+      <span class="sr-only">Open menu</span>
+      <svg
+        viewBox="0 0 24 24"
+        class="h-6 w-6"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+  </div>
+  <nav id="mobile-menu" aria-label="Site" inert class="mobile-menu">
+    <div class="overflow-hidden border-t border-charcoal-blue-800 px-2 pb-3">
+      <SiteNav context="menu" />
+    </div>
+  </nav>
+</header>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>("[data-menu-button]");
+  const menu = document.getElementById("mobile-menu");
+
+  function setMenu(open: boolean) {
+    button?.setAttribute("aria-expanded", String(open));
+    // `inert` keeps the collapsed menu out of the tab order and screen readers.
+    menu?.toggleAttribute("inert", !open);
+    menu?.classList.toggle("is-open", open);
+  }
+
+  button?.addEventListener("click", () => {
+    const open = button.getAttribute("aria-expanded") === "true";
+    setMenu(!open);
+  });
+
+  // Close the menu after navigating.
+  menu?.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => setMenu(false));
+  });
+
+  // Close on Escape.
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && button?.getAttribute("aria-expanded") === "true") {
+      setMenu(false);
+      button.focus();
+    }
+  });
+</script>

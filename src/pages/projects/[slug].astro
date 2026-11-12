@@ -1,0 +1,124 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ProjectCover from "../../components/ProjectCover.astro";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects");
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+---
+
+<BaseLayout title={project.data.title} description={project.data.description}>
+  <article class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+    <a
+      href="/projects"
+      class="font-pixel text-sm font-bold uppercase tracking-wide text-strong-cyan-400 underline transition-colors hover:text-strong-cyan-300"
+    >
+      ← All projects
+    </a>
+
+    <div class="panel mt-4">
+      <div class="panel-box">
+    <header class="border-b border-charcoal-blue-700 pb-6">
+      <div class="flex flex-col gap-6 sm:flex-row sm:items-start">
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="font-pixel text-xs font-bold uppercase tracking-wide text-olive-leaf-400">
+              {project.data.type}
+            </span>
+            <span class="font-pixel text-xs font-bold uppercase tracking-wide text-olive-leaf-400">{project.data.status}</span>
+            {
+              project.data.featured && (
+                <span class="rounded-md border border-tea-green-600 bg-tea-green-600/10 px-2 py-0.5 font-pixel text-xs font-bold uppercase text-tea-green-400">
+                  Featured
+                </span>
+              )
+            }
+          </div>
+          <h1 class="mt-2 text-3xl font-bold">{project.data.title}</h1>
+          <p class="mt-3 text-lg leading-relaxed text-charcoal-blue-300">
+            {project.data.description}
+          </p>
+          {
+            project.data.role && (
+              <p class="mt-3 text-sm text-charcoal-blue-400">
+                <span class="font-pixel text-sm font-bold uppercase tracking-wide text-charcoal-blue-200">Role:</span>{" "}
+                {project.data.role}
+              </p>
+            )
+          }
+          {
+            project.data.technologies.length > 0 && (
+              <ul class="mt-4 flex flex-wrap gap-2">
+                {project.data.technologies.map((tech) => (
+                  <li class="rounded-md border border-charcoal-blue-700 bg-charcoal-blue-950 px-2.5 py-0.5 font-pixel text-xs font-bold text-olive-leaf-300">
+                    {tech}
+                  </li>
+                ))}
+              </ul>
+            )
+          }
+          {
+            project.data.links.length > 0 && (
+              <ul class="mt-4 flex flex-wrap gap-4">
+                {project.data.links.map((link) => (
+                  <li>
+                    <a
+                      href={link.url}
+                      rel="noopener noreferrer"
+                      class="font-pixel text-sm font-bold uppercase tracking-wide text-strong-cyan-400 underline transition-colors hover:text-strong-cyan-300"
+                    >
+                      {link.label} →
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )
+          }
+        </div>
+        <ProjectCover
+          cover={project.data.cover}
+          title={project.data.title}
+          class="w-full shrink-0 rounded-xl border border-charcoal-blue-700 sm:w-64 lg:w-80"
+        />
+      </div>
+    </header>
+
+    {
+      project.data.media.length > 0 && (
+        <div class="mt-8 space-y-6">
+          {project.data.media.map((item) => (
+            <figure>
+              <img
+                src={item.src.src}
+                alt={item.alt}
+                width={item.src.width}
+                height={item.src.height}
+                loading="lazy"
+                class="w-full rounded-xl border border-charcoal-blue-700"
+              />
+              {item.caption && (
+                <figcaption class="mt-2 text-sm text-charcoal-blue-400">
+                  {item.caption}
+                </figcaption>
+              )}
+            </figure>
+          ))}
+        </div>
+      )
+    }
+
+    <div class="prose prose-invert mt-8 max-w-none prose-a:text-strong-cyan-400 prose-code:bg-charcoal-blue-950 prose-code:px-1 prose-code:py-0.5 prose-code:rounded">
+      <Content />
+    </div>
+      </div>
+    </div>
+  </article>
+</BaseLayout>

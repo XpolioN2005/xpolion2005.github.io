@@ -1,0 +1,82 @@
+---
+/**
+ * Profile block: avatar, name, social icons, resume button.
+ * Used in the desktop sidebar and (compactly) in the mobile hero.
+ */
+import { site } from "../site";
+import SocialLinks from "./SocialLinks.astro";
+
+interface Props {
+  context?: "sidebar" | "hero";
+  /** Render the name as an <h1> (mobile hero) instead of a <p>. */
+  heading?: boolean;
+  class?: string;
+}
+
+const { context = "sidebar", heading = false, class: className = "" } =
+  Astro.props;
+
+const resumeHref = site.resumeUrl || "#";
+const isHero = context === "hero";
+---
+
+<div
+  class:list={[
+    isHero
+      ? "flex items-center gap-4"
+      : "flex w-full flex-col items-center gap-4 text-center",
+    className,
+  ]}
+>
+  <!-- Avatar photo framed in a fixed-size box; object-cover makes it fill the box without overflowing -->
+  <div
+    class:list={[
+      "shrink-0 overflow-hidden border-2 border-charcoal-blue-600 bg-charcoal-blue-800",
+      isHero ? "h-16 w-16" : "h-32 w-32",
+    ]}
+  >
+    <img
+      src="/avater.png"
+      alt={site.name}
+      width="769"
+      height="770"
+      decoding="async"
+      class="h-full w-full object-cover"
+    />
+  </div>
+
+  <div class="min-w-0">
+    {
+      heading && (
+        <h1 class="truncate text-2xl font-bold text-charcoal-blue-50">
+          {site.name}
+        </h1>
+      )
+    }
+    <SocialLinks compact={isHero} class={isHero ? "-ml-1" : "-ml-1 justify-center"} />
+    {
+      !isHero && (
+        <a
+          href={resumeHref}
+          class="mt-3 inline-flex w-full items-center justify-center gap-2 border-2 border-charcoal-blue-700 bg-charcoal-blue-900 px-4 py-2 font-pixel text-sm font-bold uppercase tracking-wide text-charcoal-blue-100 transition-colors hover:border-olive-leaf-500 hover:text-olive-leaf-300"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Download resume
+        </a>
+      )
+    }
+  </div>
+</div>
