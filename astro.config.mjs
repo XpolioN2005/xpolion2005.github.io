@@ -6,7 +6,7 @@ import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
-	site: "https://xpolion.is-a.dev/",
+	site: "https://xpolion2005.github.io/",
 	vite: {
 		plugins: [tailwindcss(), mdx()],
 	},
